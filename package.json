@@ -1,0 +1,31 @@
+{
+  "name": "advent_of_code_2019",
+  "version": "1.0.0",
+  "description": "Solutions for the Advent of Code 2019. Using TypeScript.",
+  "main": "index.ts",
+  "scripts": {
+    "start": "gulp && node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JPYamamoto/advent_of_code_2019.git"
+  },
+  "keywords": [
+    "AdventOfCode",
+    "Typescript"
+  ],
+  "author": "Juan Pablo Yamamoto",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JPYamamoto/advent_of_code_2019/issues"
+  },
+  "homepage": "https://github.com/JPYamamoto/advent_of_code_2019#readme",
+  "devDependencies": {
+    "@types/node": "^12.12.14",
+    "gulp": "^4.0.0",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.2"
+  }
+}
