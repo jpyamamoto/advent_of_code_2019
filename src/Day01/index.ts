@@ -1,4 +1,4 @@
-import DaySolution from '../daySolution';
+import DaySolution from '../Utils/daySolution';
 
 class Day01 extends DaySolution {
   private readonly DIVISOR: number = 3;
