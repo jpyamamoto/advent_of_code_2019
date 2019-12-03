@@ -1,4 +1,8 @@
-export type Coordinate = [number, number];
+export interface Coordinate {
+  x: number,
+  y: number,
+  steps: number
+};
 
 class Wire {
   private coordinates: Coordinate[];
@@ -9,7 +13,7 @@ class Wire {
   }
 
   private buildCoords(instructions: string[]): Coordinate[] {
-    let posX = 0, posY = 0;
+    let posX = 0, posY = 0, totalSteps = 0;
     const coords: Coordinate[] = [];
 
     for (let move of instructions) {
@@ -34,7 +38,7 @@ class Wire {
 
         }
 
-        coords.push([posX, posY]);
+        coords.push({ x: posX, y: posY, steps: ++totalSteps });
         steps--;
       }
     }
@@ -46,8 +50,15 @@ class Wire {
     return [...this.coordinates];
   }
 
-  hasCoordinate([x, y]: Coordinate): boolean {
-    return this.coordinates.some(([posX, posY]) => posX == x && posY == y);
+  hasCoordinate({x, y}: Coordinate): boolean {
+    return this.coordinates.some(({x: posX, y: posY}) => posX == x && posY == y);
+  }
+
+  stepsToCoordinate({x, y}: Coordinate): number {
+    return this.coordinates
+      .filter(({x: posX, y: posY}) => posX == x && posY == y)
+      .reduce((acc, coord) => acc.steps <= coord.steps ? acc : coord)
+      .steps;
   }
 }
 
