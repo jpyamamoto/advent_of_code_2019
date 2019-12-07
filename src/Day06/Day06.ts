@@ -1,94 +1,79 @@
 import daySolution from '../Utils/daySolution';
 
-class Node {
-  private static idCounter = 0;
-
-  id: number;
-  name: string;
-  parent: Node|null;
-  children: Node[];
-  leaf: boolean;
-
-  constructor(name: string) {
-    this.id = Node.idCounter++;
-    this.name = name;
-    this.parent = null;
-    this.children = [];
-    this.leaf = true;
-  }
-
-  addChildren(node: Node) {
-    this.leaf = false;
-    this.children.push(node);
-  }
-
-  assignParent(node: Node) {
-    this.parent = node;
-  }
-
-  isLeaf(): boolean {
-    return this.leaf;
-  }
-
-  getChildren(): Node[] {
-    return this.children;
-  }
-}
-
 interface Planets {
-  [name: string] : Node
+  [name: string] : number
 }
 
 class Day06 extends daySolution {
   private readonly INPUT: string = "./Day06/resources/input-1.txt";
   private planets: Planets = {};
+  private numPlanets: number = 0;
 
   format(input: string): string[][] {
     const orbits = input.split('\n');
     return orbits.map(orbit => orbit.split(')'));
   }
 
-  parse(input: string[][]): void {
-    input.map(orbit => {
-      const orbittedName: string = orbit[0];
-      const orbitterName: string = orbit[1];
-      let orbitted = this.planets[orbittedName];
-      let orbitter = this.planets[orbitterName];
-      if (orbitted == undefined) {
-        orbitted = new Node(orbittedName);
-        this.planets[orbittedName] = orbitted;
-      }
-      if (orbitter == undefined) {
-        orbitter = new Node(orbitterName);
-        this.planets[orbitterName] = orbitter;
-      }
-      orbitted.addChildren(orbitter);
-      orbitter.assignParent(orbitted);
-    })
+  parsePlanets(orbits: string[][]): void {
+    const planets = orbits.reduce((acc, orbit) => acc.concat(orbit));
+    const planetsSet = new Set(planets);
+    for (let planet of planetsSet) {
+      this.planets[planet] = this.numPlanets++;
+    }
   }
 
-  getDepthLeaves(node: Node, depth: number): number[] {
-    if (node.isLeaf()) {
-      return [depth];
+  getIdOfPlanet(name: string): number {
+    return this.planets[name];
+  }
+
+  generateSquareMatrix(size: number): boolean[][] {
+    return new Array(size).fill(null).map(() => Array(size).fill(false));
+  }
+
+  fillMatrix(orbits: string[][]): boolean[][] {
+    const newMatrix = this.generateSquareMatrix(this.numPlanets);
+
+    for (let orbit of orbits) {
+      newMatrix[this.getIdOfPlanet(orbit[0])][this.getIdOfPlanet(orbit[1])] = true;
     }
 
-    let depths: number[] = [];
-    for (let children of node.getChildren()) {
-      depths = depths.concat(this.getDepthLeaves(children, depth + 1));
+    return newMatrix;
+  }
+
+  warshall(matrix: boolean[][]): boolean[][] {
+    let temp = this.generateSquareMatrix(this.numPlanets);
+
+    for (let i = 0; i < this.numPlanets; i++) {
+      for (let j = 0; j < this.numPlanets; j++) {
+        temp[i][j] = matrix[i][j];
+      }
     }
 
-    return depths;
+    for (let m = 0; m < this.numPlanets; m++) {
+      for (let n = 0; n < this.numPlanets; n++) {
+        for (let o = 0; o < this.numPlanets; o++) {
+          temp[n][o] = temp[n][o] || (temp[n][m] && temp[m][o]);
+        }
+      }
+    }
+
+    return temp;
+  }
+
+  countEdges(matrix: boolean[][]): number {
+    return matrix.reduce((acc, row) =>
+      acc + row.reduce((total, column) => total + (column ? 1 : 0), 0), 0);
   }
 
   runSolution1(): string {
-    //const input = this.readFile(this.INPUT);
-    const input = this.readFile("./Day06/resources/input-test.txt");
+    const input = this.readFile(this.INPUT);
     const orbits = this.format(input);
-    this.parse(orbits);
-    const leaves = this.getDepthLeaves(this.planets["COM"], 0);
-    const edgesTransitiveClosure = leaves.reduce((acc, x) => acc + ((x * (x + 1)) / 2), 0);
+    this.parsePlanets(orbits);
+    const matrix = this.fillMatrix(orbits);
+    const transitiveClosure = this.warshall(matrix);
+    const totalEdges = this.countEdges(transitiveClosure);
 
-    return edgesTransitiveClosure.toString();
+    return totalEdges.toString();
   }
 
   runSolution2(): string {
