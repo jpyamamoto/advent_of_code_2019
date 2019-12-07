@@ -1,13 +1,49 @@
 import daySolution from '../Utils/daySolution';
 
+class Planet {
+  id: number;
+  name: string;
+  neighbours: Set<Planet>;
+  visited: boolean;
+  distance: number;
+
+  constructor(name: string, id: number) {
+    this.id = id;
+    this.name = name;
+    this.neighbours = new Set();
+    this.visited = false;
+    this.distance = 0;
+  }
+
+  addNeighbour(neighbour: Planet) {
+    this.neighbours.add(neighbour);
+  }
+
+  visiting() {
+    this.visited = true;
+  }
+
+  setDistance(dist: number) {
+    this.distance = dist;
+  }
+}
+
 interface Planets {
-  [name: string] : number
+  [name: string] : Planet
 }
 
 class Day06 extends daySolution {
   private readonly INPUT: string = "./Day06/resources/input-1.txt";
   private planets: Planets = {};
   private numPlanets: number = 0;
+  private orbits: string[][];
+
+  constructor() {
+    super();
+    const input = this.readFile(this.INPUT);
+    this.orbits = this.format(input);
+    this.parsePlanets(this.orbits);
+  }
 
   format(input: string): string[][] {
     const orbits = input.split('\n');
@@ -17,13 +53,22 @@ class Day06 extends daySolution {
   parsePlanets(orbits: string[][]): void {
     const planets = orbits.reduce((acc, orbit) => acc.concat(orbit));
     const planetsSet = new Set(planets);
+
     for (let planet of planetsSet) {
-      this.planets[planet] = this.numPlanets++;
+      this.planets[planet] = new Planet(planet, this.numPlanets++);
+    }
+
+    for (let orbit of orbits) {
+      let orbitted = this.planets[orbit[0]];
+      let orbitter = this.planets[orbit[1]];
+
+      orbitted.addNeighbour(orbitter);
+      orbitter.addNeighbour(orbitted);
     }
   }
 
   getIdOfPlanet(name: string): number {
-    return this.planets[name];
+    return this.planets[name].id;
   }
 
   generateSquareMatrix(size: number): boolean[][] {
@@ -65,11 +110,32 @@ class Day06 extends daySolution {
       acc + row.reduce((total, column) => total + (column ? 1 : 0), 0), 0);
   }
 
+  breadthFirstSearch(): void {
+    let queue: Planet[] = [];
+    let current: Planet = this.planets["SAN"];
+    current.visiting();
+    queue.push(current);
+    
+    main:
+    while(queue.length != 0) {
+      current = queue.shift()!;
+
+      for (let neighbour of current.neighbours) {
+        if (!neighbour.visited) {
+          neighbour.visiting();
+          neighbour.setDistance(current.distance + 1);
+          queue.push(neighbour);
+
+          if (neighbour.name == "YOU") {
+            break main;
+          }
+        }
+      }
+    }
+  }
+
   runSolution1(): string {
-    const input = this.readFile(this.INPUT);
-    const orbits = this.format(input);
-    this.parsePlanets(orbits);
-    const matrix = this.fillMatrix(orbits);
+    const matrix = this.fillMatrix(this.orbits);
     const transitiveClosure = this.warshall(matrix);
     const totalEdges = this.countEdges(transitiveClosure);
 
@@ -77,7 +143,8 @@ class Day06 extends daySolution {
   }
 
   runSolution2(): string {
-    return "Not yet implemented";
+    this.breadthFirstSearch();
+    return `${this.planets["YOU"].distance - 2}`;
   }
 }
 
