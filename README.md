@@ -4,6 +4,8 @@ This is the repo containing my TypeScript code to solve the [Advent of Code](htt
 
 I decided to use TypeScript for this year's riddles in order to improve my skills on static-typed languages and focusing on the algorithms rather than the details of the language.
 
+Not all my solutions have been optimal, but I've decided to leave them just as they were at the moment I solved each challenge. That is, partly because I don't have the time to go back and revisit each snippet, and also because I want to have an archive of my solutions for each year's AoC as evidence of my coding skills progress.
+
 ## How to use this repo?
 
 1. Clone the repo.
