@@ -22,12 +22,14 @@ class IntcodeComputer {
   private input: number[];
   private output: number|null;
   private relativeBase: number;
+  private inputHandler: () => number;
 
-  constructor(program: number[], input: number[] = []) {
+  constructor(program: number[], input: number[] = [], inputHandler: () => number) {
     this.program = [ ...program ];
     this.input = [ ...input ];
     this.output = null;
     this.relativeBase = 0;
+    this.inputHandler = inputHandler;
   }
 
   static generateOpcodes(input: string): number[] {
@@ -159,6 +161,8 @@ class IntcodeComputer {
           position = this.handleMultiplication(position, mode1, mode2, mode3);
           break;
         case Opcodes.Input:
+          const input = this.inputHandler();
+          this.addToInput(input);
           position = this.handleInput(position, mode1);
           break;
         case Opcodes.Output:
