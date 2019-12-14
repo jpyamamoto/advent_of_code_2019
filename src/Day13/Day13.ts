@@ -17,15 +17,14 @@ interface coords {
 class Day13 extends DaySolution {
   private readonly INPUT: string = "./Day13/resources/input-1.txt";
   private readonly FPS: number = 60;
-  private boardWidth: number = 45;
-  private boardHeight: number = 20;
+  private readonly boardWidth: number = 45;
+  private readonly boardHeight: number = 20;
   private board: Map<string, Tile> = new Map();
   private score: number = -1;
   private ball: coords = { x: 0, y: 0 };
   private hPaddle: coords = { x: 0, y: 0 };
 
   frame(): string {
-    console.clear();
     let frame = `Score: ${this.score}`;
 
     for (let i = frame.length; i <= this.boardWidth; i++) {
@@ -93,31 +92,65 @@ class Day13 extends DaySolution {
   runSolution2(): string {
     const program = IntcodeComputer.generateOpcodes(this.readFile(this.INPUT));
     program[0] = 2;
-    const machine = new IntcodeComputer(program, [], () => this.moveJoystick());
-    const steps = machine.executeNSteps(3);
+    const machine = new IntcodeComputer(program, [], () => this.moveJoystick()).executeNSteps(3);
     let continueRunning = true;
 
-    setInterval(() => {
-      if (continueRunning) {
-        const { value, done } = steps.next();
-        continueRunning = !done;
+    while (continueRunning) {
+      const { value, done } = machine.next();
+      continueRunning = !done;
 
-        if (value[0] == -1 && value[1] == 0) {
-          this.score = value[2];
-          return;
-        }
-
-        if (value[2] == Tile.Ball) {
-          this.ball = { x: value[0], y: value[1] };
-        }
-
-        if (value[2] == Tile.HPaddle) {
-          this.hPaddle = { x: value[0], y: value[1] };
-        }
-
-        this.board.set(`${value[0]},${value[1]}`, value[2]);
-        console.log(this.frame());
+      if (value[0] == -1 && value[1] == 0) {
+        this.score = value[2];
       }
+
+      if (value[2] == Tile.Ball) {
+        this.ball = { x: value[0], y: value[1] };
+      }
+
+      if (value[2] == Tile.HPaddle) {
+        this.hPaddle = { x: value[0], y: value[1] };
+      }
+
+      this.board.set(`${value[0]},${value[1]}`, value[2]);
+    }
+
+    return this.score.toString();
+  }
+
+  runSolution2Visual(): string {
+    const program = IntcodeComputer.generateOpcodes(this.readFile(this.INPUT));
+    program[0] = 2;
+    const machine = new IntcodeComputer(program, [], () => this.moveJoystick()).executeNSteps(3);
+    let continueRunning = true;
+    let intervalId: number;
+
+    intervalId = <any>setInterval(() => {
+      if (!continueRunning) {
+        console.log(this.score);
+        clearInterval(intervalId);
+        return;
+      }
+
+      const { value, done } = machine.next();
+      continueRunning = !done;
+
+      if (value[0] == -1 && value[1] == 0) {
+        this.score = value[2];
+        return;
+      }
+
+      if (value[2] == Tile.Ball) {
+        this.ball = { x: value[0], y: value[1] };
+      }
+
+      if (value[2] == Tile.HPaddle) {
+        this.hPaddle = { x: value[0], y: value[1] };
+      }
+
+      this.board.set(`${value[0]},${value[1]}`, value[2]);
+      console.clear();
+      console.log(this.frame());
+      
     }, 1000/this.FPS);
 
     return "Not yet implemented";
