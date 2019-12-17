@@ -242,14 +242,18 @@ class Day17 extends DaySolution {
     }
 
     // Outputs.
+    let result: number = 0;
+    const setResult = (out: number) => {
+      result = out;
+    }
     const handlersOutput = [this.generateMap(), this.logger, this.generateMap(),
-                            (char: number) => console.log(char)];
+                            setResult];
     const handleOutput = (char: number) => {
       return handlersOutput[this.handlerIndex](char);
     }
     new IntcodeComputer(program, handleInput, handleOutput).execute();
 
-    return "Not yet implemented";
+    return result.toString();
   }
 }
 
