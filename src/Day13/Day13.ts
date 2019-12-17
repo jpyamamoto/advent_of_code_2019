@@ -122,9 +122,9 @@ class Day13 extends DaySolution {
     program[0] = 2;
     const machine = new IntcodeComputer(program, [], () => this.moveJoystick()).executeNSteps(3);
     let continueRunning = true;
-    let intervalId: number;
+    let intervalId: NodeJS.Timeout;
 
-    intervalId = <any>setInterval(() => {
+    intervalId = setInterval(() => {
       if (!continueRunning) {
         console.log(this.score);
         clearInterval(intervalId);

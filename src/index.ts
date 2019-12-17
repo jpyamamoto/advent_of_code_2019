@@ -15,6 +15,7 @@ import runDay12 from './Day12';
 import runDay13 from './Day13';
 import runDay14 from './Day14';
 import runDay15 from './Day15';
+import runDay16 from './Day16';
 
 let read = readline.createInterface({
   input: process.stdin,
@@ -40,6 +41,7 @@ read.question("Day to run: ", (day) => {
   else if (dayInt == 13) { runDay13(); }
   else if (dayInt == 14) { runDay14(); }
   else if (dayInt == 15) { runDay15(); }
+  else if (dayInt == 16) { runDay16(); }
   else { console.log(`Solutions of day ${day} not implemented.`); }
 
   read.close()
