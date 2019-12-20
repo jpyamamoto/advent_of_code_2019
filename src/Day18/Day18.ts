@@ -37,7 +37,7 @@ class Day18 extends DaySolution {
     return neighbours;
   }
 
-  private computeDistanceTo(node1: Node, node2: Node, grid: boolean = false): number {
+  private computeDistanceTo(node1: Node, node2: Node): number {
     let queue: string[] = [];
     let current = node1.getCoords();
     const target = node2.getCoords();
@@ -106,8 +106,9 @@ class Day18 extends DaySolution {
     }
   }
 
-  private getCacheIndex(main: Node, elems: Node[]): string {
-    let result = main.getName();
+  private getCacheIndex(robots: Set<Node>, elems: Node[]): string {
+    const arrRobots = Array.from(robots);
+    let result = arrRobots.map(elem => elem.getName()).sort().join(',');
 
     for (let elem of elems.map(elem => elem.getName()).sort()) {
       result += "," + elem;
@@ -116,12 +117,12 @@ class Day18 extends DaySolution {
     return result;
   }
 
-  private bestDistance(node: Node, keys: Node[], cache: Map<string, number>): number {
+  private bestDistance(nodes: Set<Node>, keys: Node[], cache: Map<string, number>): number {
     if (keys.length == 0) {
       return 0;
     }
 
-    const cacheElem = this.getCacheIndex(node, [...keys]);
+    const cacheElem = this.getCacheIndex(nodes, [...keys]);
     const cacheResult = cache.get(cacheElem);
     if (cacheResult != undefined) {
       return cacheResult;
@@ -129,9 +130,31 @@ class Day18 extends DaySolution {
 
     let result = Infinity;
 
-    for (let key of node.reachableKeys(keys)) {
-      const distance = this.bestDistance(key, keys.filter(elem => elem != key), cache) + node.distanceTo(key)!;
-      result = Math.min(result, distance);
+    for (let key of keys) {
+      for (let node of nodes) {
+        if (key == node) {
+          continue;
+        }
+
+        const distance = node.distanceTo(key);
+        if (distance == Infinity) {
+          continue;
+        }
+
+        if (distance! >= result) {
+          continue;
+        }
+
+        if (!node.allDependenciesMet(key, keys)) {
+          continue;
+        }
+
+        const newNodes = new Set(nodes);
+        newNodes.add(key).delete(node)
+        const bestDistance = this.bestDistance(newNodes, keys.filter(elem => elem != key), cache) + distance!;
+
+        result = Math.min(result, bestDistance);
+      }
     }
 
     cache.set(cacheElem, result);
@@ -142,18 +165,31 @@ class Day18 extends DaySolution {
     this.parse(this.readFile(this.INPUT1));
     this.computeDistances();
 
-    const result = this.bestDistance(Node.getNodes().filter(node => node.getName() == "@")[0]!, Node.getNodes().filter(node => node.isKey()), new Map());
+    const node = Node.getNodes().filter(node => node.getName() == "@")[0];
+    const nodes: Set<Node> = new Set();
+    nodes.add(node);
+    const result = this.bestDistance(nodes, Node.getNodes().filter(node => node.isKey()), new Map());
     return result.toString();
   }
 
   runSolution2(): string {
     this.map = new Map();
     Node.cleanNodes();
-    //this.parse(this.readFile(this.INPUT1));
-    this.parse(this.readFile("./Day18/resources/input-test-5.txt"));
+    this.parse(this.readFile(this.INPUT2));
     this.computeDistances();
 
-      const result = this.bestDistance(Node.getNodes().filter(node => node.getName() == "@")[0], Node.getNodes().filter(node => node.isKey()), new Map());
+    const node1 = Node.getNodes().filter(node => node.getName() == "1")[0];
+    const node2 = Node.getNodes().filter(node => node.getName() == "2")[0];
+    const node3 = Node.getNodes().filter(node => node.getName() == "3")[0];
+    const node4 = Node.getNodes().filter(node => node.getName() == "4")[0];
+
+    const nodes: Set<Node> = new Set();
+    nodes.add(node1);
+    nodes.add(node2);
+    nodes.add(node3);
+    nodes.add(node4);
+
+    const result = this.bestDistance(nodes, Node.getNodes().filter(node => node.isKey()), new Map());
     return result.toString();
   }
 }

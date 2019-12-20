@@ -6,8 +6,6 @@ class Node {
   private name: string;
   private type: NodeType;
   private coords: string;
-  private x: number;
-  private y: number;
   private dependencies: Map<string, Node[]>;
   private distances: Map<string, number>;
 
@@ -21,10 +19,8 @@ class Node {
 
   constructor(name: string, x: number, y: number) {
     this.name = name;
-    this.type = name == "@" ? NodeType.Robot : (name.toLowerCase() == name ? NodeType.Key : NodeType.Door);
+    this.type = !isNaN(Number(name)) || name == "@" ? NodeType.Robot : (name.toLowerCase() == name ? NodeType.Key : NodeType.Door);
     this.coords = `${x},${y}`;
-    this.x = x;
-    this.y = y;
     this.dependencies = new Map();
     this.distances = new Map();
 
@@ -72,12 +68,6 @@ class Node {
     });
   }
 
-  public reachableKeys(missingKeys: Node[]): Node[] {
-    return Node.getNodes().filter(node => {
-      return node.isKey() && missingKeys.includes(node) && this.allDependenciesMet(node, missingKeys);
-    });
-  }
-  
   public getName(): string {
     return this.name;
   }
