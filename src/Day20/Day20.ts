@@ -8,6 +8,7 @@ interface InfoVertex {
   distance: number,
   visited: boolean,
   outermost: boolean,
+  innermost: boolean,
 };
 
 type CoordsVertex = Vertex<string, InfoVertex>;
@@ -25,12 +26,19 @@ class Day20 extends DaySolution {
 
     input.split('\n').forEach((row, i) => row.split('').forEach((point, j) => {
       if (point != "#" && point != " ") {
-        matrix.set(`${j},${i}`, new Vertex(`${j},${i}`,
-          { x: j, y: i, name: point == '.' ? null : point, distance: 0, visited: false, outermost: j == 2 || j == width - 2 || i == 2 || i == height - 2 }
-        ));
-        temp.set(`${j},${i}`, new Vertex(`${j},${i}`,
-          { x: j, y: i, name: point == '.' ? null : point, distance: 0, visited: false, outermost: j == 2 || j == width - 2 || i == 2 || i == height - 2 }
-        ));
+
+        const info = {
+          x: j,
+          y: i,
+          name: point == '.' ? null : point,
+          distance: 0,
+          visited: false,
+          outermost: j == 2 || j == width - 2 || i == 2 || i == height - 2,
+          innermost: false,
+        };
+
+        matrix.set(`${j},${i}`, new Vertex(`${j},${i}`, { ...info }));
+        temp.set(`${j},${i}`, new Vertex(`${j},${i}`, { ...info }));
       }
     }));
 
@@ -98,6 +106,9 @@ class Day20 extends DaySolution {
     for (let vertex of matrix.values()) {
       if (vertex.info.name == null) {
         vertex.info.name = getName(vertex);
+
+        vertex.info.innermost = !vertex.info.outermost && vertex.info.name != null;
+
         for (let neighbour of getNeighbours(vertex)) {
           vertex.createDirectedEdge(neighbour);
         }
@@ -145,6 +156,60 @@ class Day20 extends DaySolution {
   }
 
   private BFSDistanceRecursiveSpace(origin: CoordsVertex, target: CoordsVertex): number {
+    let queue: string[] = [];
+    let current = `${origin.getId()}:0`;
+    const targetCoords = `${target.getId()}:0`;
+    let prev: Map<string, string> = new Map();
+
+    const visited: Map<string, boolean> = new Map();
+    visited.set(current, true);
+    queue.push(current);
+
+    main:
+    while (queue.length != 0) {
+      current = queue.shift()!;
+      const [id, depth] = current.split(':');
+
+      for (let neighbour of this.map.getVertex(id).getConnections(this.map)) {
+        let nextDepth = Number.parseInt(depth);
+
+        const currentVertex = this.map.getVertex(id);
+
+        if (neighbour.info.outermost && currentVertex.info.innermost) {
+          nextDepth += 1;
+        }
+        if (neighbour.info.innermost && currentVertex.info.outermost) {
+          nextDepth -= 1;
+        }
+
+        if (nextDepth == 0 && neighbour.info.outermost && neighbour.info.name != target.info.name) {
+          continue;
+        }
+
+        const token = `${neighbour.getId()}:${nextDepth}`;
+        const isVisited = visited.get(token)!;
+
+        if (isVisited == undefined || !isVisited) {
+          visited.set(token, true);
+          prev.set(token, current)
+          queue.push(token);
+        }
+
+        if (token == targetCoords) {
+          break main;
+        }
+      }
+    }
+
+    let distance = 1;
+    let temp = prev.get(targetCoords)!;
+
+    while (temp != `${origin.getId()}:0`) {
+      temp = prev.get(temp)!;
+      distance++;
+    }
+
+    return distance;
   }
 
   runSolution1(): string {
@@ -159,8 +224,8 @@ class Day20 extends DaySolution {
 
   runSolution2(): string {
     this.map = new Graph();
-    //this.parse(this.readFile(this.INPUT, false));
-    this.parse(this.readFile("./Day20/resources/input-test-1.txt", false));
+    this.parse(this.readFile(this.INPUT, false));
+    //this.parse(this.readFile("./Day20/resources/input-test-3.txt", false));
     const origin = this.map.getAllVertices().find(vertex => vertex.info.name == "AA");
     const target = this.map.getAllVertices().find(vertex => vertex.info.name == "ZZ");
 
